@@ -1,0 +1,50 @@
+/*apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = "7"
+targetCompatibility = "7"*/
+
+apply plugin: "org.jetbrains.kotlin.multiplatform"
+
+kotlin {
+    targets {
+        final def iOSTarget = System.getenv('SDK_NAME')?.startsWith("iphoneos") \
+                              ? presets.iosArm64 : presets.iosX64
+
+        fromPreset(iOSTarget, 'iOS') {
+            compilations.main.outputKinds('FRAMEWORK')
+        }
+
+        final def macTarget = presets.macosX64
+        fromPreset(macTarget, 'Mac') {
+            compilations.main.outputKinds('FRAMEWORK')
+        }
+
+        fromPreset(presets.jvm, 'android')
+    }
+
+    sourceSets {
+
+        commonMain {
+            kotlin.srcDir('src/main/java')
+            resources.srcDir('src/main/res')
+
+            dependencies {
+                api 'org.jetbrains.kotlin:kotlin-stdlib-common'
+                api 'org.jetbrains.kotlin:kotlin-stdlib'
+            }
+        }
+
+        allJvm {
+            dependsOn commonMain
+        }
+    }
+}
+
+// workaround for https://youtrack.jetbrains.com/issue/KT-27170
+configurations {
+    compileClasspath
+}
